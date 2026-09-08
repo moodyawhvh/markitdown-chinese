@@ -13,17 +13,19 @@ from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from markitdown import MarkItDown
 import uvicorn
 
-# Initialize FastMCP server for MarkItDown (SSE)
+# 初始化面向 MarkItDown 的 FastMCP 服务器(SSE)
 mcp = FastMCP("markitdown")
 
 
 @mcp.tool()
 async def convert_to_markdown(uri: str) -> str:
     """Convert a resource described by an http:, https:, file: or data: URI to markdown"""
+    # MCP 唯一暴露的工具:把 http:/https:/file:/data: URI 指向的资源转换为 Markdown
     return MarkItDown(enable_plugins=check_plugins_enabled()).convert_uri(uri).markdown
 
 
 def check_plugins_enabled() -> bool:
+    # 通过环境变量 MARKITDOWN_ENABLE_PLUGINS 控制是否启用第三方插件(默认关闭)
     return os.getenv("MARKITDOWN_ENABLE_PLUGINS", "false").strip().lower() in (
         "true",
         "1",
@@ -32,6 +34,7 @@ def check_plugins_enabled() -> bool:
 
 
 def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
+    # 构建 Starlette 应用:同时挂载 SSE 与 Streamable HTTP 两种传输端点
     sse = SseServerTransport("/messages/")
     session_manager = StreamableHTTPSessionManager(
         app=mcp_server,
@@ -41,6 +44,7 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
     )
 
     async def handle_sse(request: Request) -> None:
+        # SSE 握手:建立双向流后在该连接上运行 MCP 服务器
         async with sse.connect_sse(
             request.scope,
             request.receive,
@@ -55,11 +59,13 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
     async def handle_streamable_http(
         scope: Scope, receive: Receive, send: Send
     ) -> None:
+        # Streamable HTTP:所有请求交给会话管理器统一处理(无状态、JSON 响应)
         await session_manager.handle_request(scope, receive, send)
 
     @contextlib.asynccontextmanager
     async def lifespan(app: Starlette) -> AsyncIterator[None]:
         """Context manager for session manager."""
+        # 应用生命周期:启动时开启会话管理器,退出时确保干净关闭
         async with session_manager.run():
             print("Application started with StreamableHTTP session manager!")
             try:
@@ -79,6 +85,7 @@ def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlett
 
 
 # Main entry point
+# 程序主入口:解析命令行参数,决定以 STDIO 还是 HTTP/SSE 方式启动
 def main():
     import argparse
 
@@ -104,8 +111,10 @@ def main():
     )
     args = parser.parse_args()
 
+    # --sse 是 --http 的废弃别名,两者任选其一即启用 HTTP 模式
     use_http = args.http or args.sse
 
+    # host/port 参数只在 HTTP/SSE 模式下有意义
     if not use_http and (args.host or args.port):
         parser.error(
             "Host and port arguments are only valid when using streamable HTTP or SSE transport (see: --http)."
@@ -114,6 +123,8 @@ def main():
 
     if use_http:
         host = args.host if args.host else "127.0.0.1"
+        # 安全警告:绑定到非 localhost 接口会把服务器暴露给局域网/互联网,
+        # 而本服务器没有任何身份验证,并以当前用户权限运行。
         if args.host and args.host not in ("127.0.0.1", "localhost"):
             print(
                 "\n"
@@ -133,6 +144,7 @@ def main():
             port=args.port if args.port else 3001,
         )
     else:
+        # 默认 STDIO 模式:适合与本地可信的 MCP 客户端直连
         mcp.run()
 
 

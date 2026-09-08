@@ -1,28 +1,24 @@
-# THIRD-PARTY SOFTWARE NOTICES AND INFORMATION
+> 🌐 本文档由 [microsoft/markitdown](https://github.com/microsoft/markitdown) 翻译,英文原版见原项目。
+>
+> ℹ️ 译注:本文件为第三方软件法律声明,许可证正文具有法律效力,按要求保持英文原文,此处仅翻译说明性章节。
 
-**Do Not Translate or Localize**
+# 第三方软件声明与信息
 
-This project incorporates components from the projects listed below. The original copyright notices and the licenses 
-under which MarkItDown received such components are set forth below. MarkItDown reserves all rights not expressly 
-granted herein, whether by implication, estoppel or otherwise.
+**(原文标注:Do Not Translate or Localize —— 本文件不应翻译或本地化,许可证正文以英文原文为准)**
+
+本项目包含了下列项目中的组件。原始版权声明以及 MarkItDown 获取这些组件时所依据的许可证载明如下。对于未在本声明中明确授予的权利(无论以默示、禁反言或其他方式),MarkItDown 均保留所有权利。
 
 1.dwml (https://github.com/xiilei/dwml)
 
-dwml NOTICES AND INFORMATION BEGIN HERE
+dwml 声明与信息自此开始
 
 -----------------------------------------
 
-NOTE 1: What follows is a verbatim copy of dwml's LICENSE file, as it appeared on March 28th, 2025 - including 
-placeholders for the copyright owner and year.
+说明 1:以下内容是 dwml 的 LICENSE 文件的逐字副本(截至 2025 年 3 月 28 日的版本),其中保留了版权所有者和年份的占位符。
 
-NOTE 2: The Apache License, Version 2.0, requires that modifications to the dwml source code be documented.  
-The following section summarizes these changes. The full details are available in the MarkItDown source code 
-repository under PR #1160 (https://github.com/microsoft/markitdown/pull/1160)
+说明 2:Apache 许可证 2.0 版要求对 dwml 源代码的修改必须有相应文档记录。以下内容概述了这些修改。完整细节见 MarkItDown 源代码仓库中的 PR #1160 (https://github.com/microsoft/markitdown/pull/1160)。
 
-This project incorporates `dwml/latex_dict.py` and `dwml/omml.py` files without any additional logic modifications (which 
-lives in `packages/markitdown/src/markitdown/converter_utils/docx/math` location). However, we have reformatted the code
-according to `black` code formatter.  From `tests/docx.py` file, we have used `DOCXML_ROOT` XML namespaces and the rest of 
-the file is not used.
+本项目引入了 `dwml/latex_dict.py` 和 `dwml/omml.py` 两个文件,未做任何额外的逻辑修改(位于 `packages/markitdown/src/markitdown/converter_utils/docx/math` 目录),但已按 `black` 代码格式化工具重新排版。此外,从 `tests/docx.py` 文件中使用了 `DOCXML_ROOT` XML 命名空间,该文件的其余部分未被使用。
 
 -----------------------------------------
 
@@ -229,4 +225,4 @@ Apache License
    limitations under the License.
 
 -----------------------------------------
-END OF dwml NOTICES AND INFORMATION
+END OF dwml NOTICES AND INFORMATION(dwml 声明与信息到此结束)
