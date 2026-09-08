@@ -53,6 +53,7 @@ from ._exceptions import (
 )
 
 
+# 从 HTTP Content-Disposition 响应头解析下载文件名(优先 RFC 2231 扩展格式,回退普通 filename)
 def _get_content_disposition_filename(content_disposition: str) -> Optional[str]:
     message = Message()
     message["content-disposition"] = content_disposition
@@ -70,6 +71,9 @@ def _get_content_disposition_filename(content_disposition: str) -> Optional[str]
     return extended_filename or fallback_filename
 
 
+# 数值越小优先级越高(优先尝试)。
+# 0.0:特定文件格式转换器(如 .docx/.pdf/.xlsx 或 wikipedia 等特定站点)
+# 10.0:通用兜底转换器(处理 text/* 等 mimetype)
 # Lower priority values are tried first.
 PRIORITY_SPECIFIC_FILE_FORMAT = (
     0.0  # e.g., .docx, .pdf, .xlsx, Or specific pages, e.g., wikipedia
@@ -79,9 +83,10 @@ PRIORITY_GENERIC_FILE_FORMAT = (
 )
 
 
-_plugins: Union[None, List[Any]] = None  # If None, plugins have not been loaded yet.
+_plugins: Union[None, List[Any]] = None  # 若为 None,表示插件尚未加载(惰性加载缓存)。
 
 
+# 插件惰性加载:通过 markitdown.plugin 入口点组发现并加载插件;单个插件加载失败仅告警,不中断整体。
 def _load_plugins() -> Union[None, List[Any]]:
     """Lazy load plugins, exiting early if already loaded."""
     global _plugins
@@ -102,6 +107,7 @@ def _load_plugins() -> Union[None, List[Any]]:
     return _plugins
 
 
+# 转换器注册记录:转换器实例 + 优先级(数值越小越先尝试)。
 @dataclass(kw_only=True, frozen=True)
 class ConverterRegistration:
     """A registration of a converter with its priority and other metadata."""
@@ -113,6 +119,8 @@ class ConverterRegistration:
 class MarkItDown:
     """(In preview) An extremely simple text-based document reader, suitable for LLM use.
     This reader will convert common file-types or webpages to Markdown."""
+    # 中文说明:极简的纯文本文档读取器,面向 LLM 场景,可把常见文件类型或网页转换为 Markdown。
+    # 核心流程:convert* 系列入口 → 生成 StreamInfo 格式猜测列表 → 按优先级逐一尝试转换器 → 返回首个成功结果。
 
     def __init__(
         self,
@@ -146,6 +154,7 @@ class MarkItDown:
         self._exiftool_path: Union[str | None] = None
         self._style_map: Union[str | None] = None
 
+        # 注册转换器(内置转换器默认启用,插件需显式开启 enable_plugins=True)
         # Register the converters
         self._converters: List[ConverterRegistration] = []
 
@@ -195,6 +204,8 @@ class MarkItDown:
                     ):
                         self._exiftool_path = candidate
 
+            # 注册内置转换器。注意:后注册的会排在前面、优先尝试;
+            # 因此越专用的转换器越要后注册(放在最通用的转换器之后)。
             # Register converters for successful browsing operations
             # Later registrations are tried first / take higher priority than earlier registrations
             # To this end, the most specific converters should appear below the most generic converters
@@ -298,6 +309,7 @@ class MarkItDown:
         stream_info: Optional[StreamInfo] = None,
         **kwargs: Any,
     ) -> DocumentConverterResult:  # TODO: deal with kwargs
+        # 总入口:按 source 类型自动分发到 convert_uri / convert_local / convert_response / convert_stream
         """
         Args:
             - source: can be a path (str or Path), url, or a requests.response object
@@ -349,6 +361,7 @@ class MarkItDown:
         if isinstance(path, Path):
             path = str(path)
 
+        # 本地文件转换入口:用路径/扩展名构建初始 StreamInfo 猜测
         # Build a base StreamInfo object from which to start guesses
         base_guess = StreamInfo(
             local_path=path,
@@ -385,6 +398,7 @@ class MarkItDown:
     ) -> DocumentConverterResult:
         guesses: List[StreamInfo] = []
 
+        # 二进制流转换入口:不可 seek 的流会先整体读入内存,再基于内容做格式猜测
         # Do we have anything on which to base a guess?
         base_guess = None
         if stream_info is not None or file_extension is not None or url is not None:
@@ -451,6 +465,7 @@ class MarkItDown:
         ] = None,  # Mock the request as if it came from a different URL
         **kwargs: Any,
     ) -> DocumentConverterResult:
+        # 统一 URI 入口:按 scheme 分发到 file: / data: / http(s): 三条路径
         uri = uri.strip()
         scheme = urlparse(uri).scheme.lower()
 
@@ -511,6 +526,7 @@ class MarkItDown:
         url: Optional[str] = None,  # Deprecated -- use stream_info
         **kwargs: Any,
     ) -> DocumentConverterResult:
+        # requests.Response 入口:从响应头提取 mimetype/charset/文件名后,读入内存走流式转换
         # If there is a content-type header, get the mimetype and charset (if present)
         mimetype: Optional[str] = None
         charset: Optional[str] = None
@@ -578,6 +594,8 @@ class MarkItDown:
     def _convert(
         self, *, file_stream: BinaryIO, stream_info_guesses: List[StreamInfo], **kwargs
     ) -> DocumentConverterResult:
+        # 核心分发循环:遍历「每一条格式猜测 × 按优先级排序的转换器」,
+        # 第一个成功返回的结果即最终结果;全部失败则汇总异常抛出。
         res: Union[None, DocumentConverterResult] = None
 
         # Keep track of which converters throw exceptions
@@ -706,6 +724,7 @@ class MarkItDown:
         after the built-ins. For example, a plugin with priority 9 will run
         before the PlainTextConverter, but after the built-in converters.
         """
+        # 中文说明:注册转换器并指定优先级;数值越小越先尝试(稳定排序,同优先级时后注册者靠前)。
         self._converters.insert(
             0, ConverterRegistration(converter=converter, priority=priority)
         )
@@ -716,6 +735,7 @@ class MarkItDown:
         """
         Given a base guess, attempt to guess or expand on the stream info using the stream content (via magika).
         """
+        # 结合扩展名/mimetype 与 magika 内容探测,生成一组互相兼容的 StreamInfo 猜测
         guesses: List[StreamInfo] = []
 
         # Enhance the base guess with information based on the extension or mimetype
