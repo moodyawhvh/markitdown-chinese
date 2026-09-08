@@ -196,7 +196,7 @@ MIT —— 见 [LICENSE](LICENSE)。
 
 ### 0.1.0(首发版本)
 
-- 面向 PDF、DOCX、POTX、XLSX 的 LLM 视觉 OCR(PPTX、DOCX、XLSX 均已支持)
+- 面向 PDF、DOCX、PPTX、XLSX 的 LLM 视觉 OCR
 - 扫描版 PDF 的整页 OCR 兜底
 - 感知上下文的内联文字插入
 - 基于优先级的转换器替换(无需改动任何代码)

@@ -1,25 +1,13 @@
-# TODO: The maintainer of this repo has not yet edited this file
+> 🌐 本文档由 [microsoft/markitdown](https://github.com/microsoft/markitdown) 翻译,英文原版见原项目。
 
-**REPO OWNER**: Do you want Customer Service & Support (CSS) support for this product/project?
+# 支持
 
-- **No CSS support:** Fill out this template with information about how to file issues and get help.
-- **Yes CSS support:** Fill out an intake form at [aka.ms/onboardsupport](https://aka.ms/onboardsupport). CSS will work with/help you to determine next steps.
-- **Not sure?** Fill out an intake as though the answer were "Yes". CSS will help you decide.
+## 如何提交 Issue 和获取帮助
 
-*Then remove this first heading from this SUPPORT.MD file before publishing your repo.*
+本项目使用 GitHub Issues 跟踪缺陷和功能请求。提交新 Issue 之前请先搜索现有 Issue,避免重复。如有新问题,请以新 Issue 的形式提交缺陷报告或功能请求。
 
-# Support
+有关本项目使用的帮助和疑问,请通过 [GitHub Issues](https://github.com/microsoft/markitdown/issues) 与项目维护者和社区交流。
 
-## How to file issues and get help  
+## 微软支持政策
 
-This project uses GitHub Issues to track bugs and feature requests. Please search the existing 
-issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
-feature request as a new Issue.
-
-For help and questions about using this project, please **REPO MAINTAINER: INSERT INSTRUCTIONS HERE 
-FOR HOW TO ENGAGE REPO OWNERS OR COMMUNITY FOR HELP. COULD BE A STACK OVERFLOW TAG OR OTHER
-CHANNEL. WHERE WILL YOU HELP PEOPLE?**.
-
-## Microsoft Support Policy  
-
-Support for this **PROJECT or PRODUCT** is limited to the resources listed above.
+对本**项目或产品**的支持仅限于上文列出的资源。
